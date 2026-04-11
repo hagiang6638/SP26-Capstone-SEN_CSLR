@@ -1,0 +1,55 @@
+feeder: dataset.dataloader_video.BaseFeeder
+phase: train
+dataset: vsl
+num_epoch: 60
+python_evaluate: False
+work_dir: ./work_dir/VietNamese-SL_phase2/
+batch_size: 2
+random_seed: 0
+test_batch_size: 2
+num_worker: 8
+device: 0
+log_interval: 200
+eval_interval: 1
+save_interval: 5
+loss_weights:
+  ConvCTC: 1.0
+  SeqCTC: 1.0
+  Dist: 25.0
+
+# Kế thừa trọng số cuối cùng của Phase 1
+load_checkpoints: ./work_dir/VietNamese-SL_phase1/dev_best_model.pt
+ignore_weights: []
+# Mở khóa mạng CNN Backbone để finetune toàn mạng (End-to-End)
+freeze_conv2d: False
+
+# Cấu hình Weights & Biases (Nhập wandb_id từ quá trình run Phase 1 để nối biểu đồ)
+use_wandb: True
+wandb_project: 'VSL_Training'
+wandb_id: 'xxxxxx'  # CHÚ Ý: Thay chữ 'xxxxxx' bằng Run ID lấy được từ Phase 1
+
+optimizer_args:
+  optimizer: Adam
+  base_lr: 0.00005 # Learning rate nhỏ hơn cho Phase 2
+  step: [ 20, 40]
+  learning_ratio: 1
+  weight_decay: 0.0001
+  start_epoch: 0
+  nesterov: False
+
+feeder_args:
+  mode: 'train'
+  datatype: 'video'
+  num_gloss: -1
+  drop_ratio: 1.0
+  frame_interval: 1
+  image_scale: 1.0  # 0-1 represents ratio, >1 represents absolute value
+  input_size: 224
+
+model: slr_network.SLRModel
+decode_mode: beam
+model_args:
+  num_classes: 2000 # THAY ĐỔI: Thành (tổng số từ vựng VSL + 1)
+  c2d_type: resnet18
+  conv_type: 2
+  use_bn: 1
