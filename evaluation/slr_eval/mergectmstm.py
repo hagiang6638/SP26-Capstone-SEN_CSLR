@@ -34,3 +34,4 @@ ctm = open(ctmFile, "w+")
 for l in ctmDict:
     ctm.write(" ".join(l) + "\n")
 ctm.close()
+
