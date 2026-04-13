@@ -41,7 +41,7 @@ class BaseFeeder(data.Dataset):
         self.image_scale = image_scale # not implemented for read_features()
         self.feat_prefix = f"{prefix}/features/fullFrame-256x256px/{mode}"
         self.transform_mode = "train" if transform_mode else "test"
-        self.inputs_list = np.load(f"./preprocess/{dataset}/{mode}_info.npy", allow_pickle=True).item()
+        self.inputs_list = np.load(f"./{dataset}/{mode}_info.npy", allow_pickle=True).item()
         # self.inputs_list = np.load(f"{prefix}/annotations/manual/{mode}.corpus.npy", allow_pickle=True).item()
         # self.inputs_list = np.load(f"{prefix}/annotations/manual/{mode}.corpus.npy", allow_pickle=True).item()
         # self.inputs_list = dict([*filter(lambda x: isinstance(x[0], str) or x[0] < 10, self.inputs_list.items())])
@@ -72,7 +72,12 @@ class BaseFeeder(data.Dataset):
             img_folder = os.path.join(self.prefix, "features/fullFrame-256x256px/" + fi['folder'] + "/*.jpg")
         elif self.dataset == 'CSL-Daily':
             img_folder = os.path.join(self.prefix, fi['folder'])
+        else: # Hỗ trợ vietnamese-sl hoặc các chuẩn thư mục tùy chỉnh
+            img_folder = os.path.join(self.prefix, "features/" + fi['folder'])
         img_list = sorted(glob.glob(img_folder))
+
+        if len(img_list) == 0:
+            print(f"Warning: No images found in {img_folder}")
 
         '''
         len_img = len(img_list)
@@ -112,6 +117,7 @@ class BaseFeeder(data.Dataset):
         if self.transform_mode == "train":
             print("Apply training transform.")
             return video_augmentation.Compose([
+                video_augmentation.Resize(256), # Tự động resize ảnh gốc về 256x256 ngay lúc train
                 # video_augmentation.CenterCrop(224),
                 # video_augmentation.WERAugment('/lustre/wangtao/current_exp/exp/baseline/boundary.npy'),
                 video_augmentation.RandomCrop(self.input_size),
@@ -123,6 +129,7 @@ class BaseFeeder(data.Dataset):
         else:
             print("Apply testing transform.")
             return video_augmentation.Compose([
+                video_augmentation.Resize(256), # Tự động resize ảnh gốc về 256x256 ngay lúc test
                 video_augmentation.CenterCrop(self.input_size),
                 video_augmentation.Resize(self.image_scale),
                 video_augmentation.ToTensor(),

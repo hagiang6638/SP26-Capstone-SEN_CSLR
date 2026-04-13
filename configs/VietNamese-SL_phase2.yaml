@@ -1,7 +1,7 @@
 feeder: dataset.dataloader_video.BaseFeeder
 phase: train
-dataset: vsl
-num_epoch: 60
+dataset: VietNamese-SL
+num_epoch: 30
 python_evaluate: False
 work_dir: ./work_dir/VietNamese-SL_phase2/
 batch_size: 2
@@ -18,7 +18,7 @@ loss_weights:
   Dist: 25.0
 
 # Kế thừa trọng số cuối cùng của Phase 1
-load_checkpoints: ./work_dir/VietNamese-SL_phase1/dev_best_model.pt
+load_weights: ./work_dir/VietNamese-SL_phase1/dev_best_model.pt
 ignore_weights: []
 # Mở khóa mạng CNN Backbone để finetune toàn mạng (End-to-End)
 freeze_conv2d: False

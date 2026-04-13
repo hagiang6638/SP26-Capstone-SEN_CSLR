@@ -69,9 +69,7 @@ class Processor():
             total_time = 0
             epoch_time = 0
             self.recoder.print_log('Parameters:\n{}\n'.format(str(vars(self.arg))))
-            seq_model_list = []
             for epoch in range(self.arg.optimizer_args['start_epoch'], self.arg.num_epoch):
-                save_model = epoch % self.arg.save_interval == 0
                 eval_model = epoch % self.arg.eval_interval == 0
                 epoch_time = time.time()
                 # train end2end model
@@ -79,6 +77,7 @@ class Processor():
                           self.device, epoch, self.recoder)
                 train_loss = np.mean(train_loss_list) if len(train_loss_list) > 0 else 0.0
                 log_dict = {"epoch": epoch, "train/loss": train_loss}
+                dev_wer = best_dev  # giữ giá trị cũ nếu không eval ở epoch này
 
                 if eval_model:
                     dev_wer = seq_eval(self.arg, self.data_loader['dev'], self.model, self.device,
@@ -89,20 +88,20 @@ class Processor():
                     if dev_wer < best_dev:
                         best_dev = dev_wer
                         best_epoch = epoch
-                        model_path = "{}_best_model.pt".format(self.arg.work_dir)
+                        model_path = "{}/best_model.pt".format(self.arg.work_dir)
                         self.save_model(epoch, model_path)
-                        self.recoder.print_log('Save best model')
+                        self.recoder.print_log('Save best model (WER: {:05.2f})'.format(best_dev))
+
+                # Luôn ghi đè 1 file checkpoint duy nhất sau mỗi epoch
+                last_ckpt_path = "{}/last_checkpoint.pt".format(self.arg.work_dir)
+                self.save_model(epoch, last_ckpt_path)
+                self.recoder.print_log('Saved last checkpoint -> epoch {}'.format(epoch))
 
                 if getattr(self.arg, 'use_wandb', False):
                     import wandb
                     wandb.log(log_dict)
 
                 self.recoder.print_log('Best_dev: {:05.2f}, Epoch : {}'.format(best_dev, best_epoch))
-                if save_model:
-                    model_path = "{}dev_{:05.2f}_epoch{}_model.pt".format(self.arg.work_dir, dev_wer, epoch)
-                    seq_model_list.append(model_path)
-                    print("seq_model_list", seq_model_list)
-                    self.save_model(epoch, model_path)
                 epoch_time = time.time() - epoch_time
                 total_time += epoch_time
                 self.recoder.print_log('Epoch {} costs {} mins {} seconds'.format(epoch, int(epoch_time)//60, int(epoch_time)%60))

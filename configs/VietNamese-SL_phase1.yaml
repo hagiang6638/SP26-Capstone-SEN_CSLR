@@ -1,6 +1,6 @@
 feeder: dataset.dataloader_video.BaseFeeder
 phase: train
-dataset: vsl
+dataset: VietNamese-SL
 num_epoch: 20
 python_evaluate: False
 work_dir: ./work_dir/VietNamese-SL_phase1/
