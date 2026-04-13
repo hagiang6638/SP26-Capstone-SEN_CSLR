@@ -13,19 +13,25 @@ ctmDict = []
 stmDict = []
 addedlines = 0
 
-for idx, line in enumerate(ctm):
+for line in ctm:
     l = line.strip().split()
+    if not l: continue
     ctmDict.append(l)
 
-for idx, line in enumerate(stm):
+idx = 0
+for line in stm:
     l = line.strip().split()
+    if not l: continue
     stmDict.append(l)
-    if len(ctmDict) > idx + addedlines and ctmDict[idx + addedlines][0] == l[0]:  # ctm and stm match:
+    
+    # check that ctm line is also valid
+    if len(ctmDict) > idx + addedlines and len(ctmDict[idx + addedlines]) > 0 and ctmDict[idx + addedlines][0] == l[0]:  # ctm and stm match:
         if len(ctmDict) > idx + addedlines + 1:
-            while (len(ctmDict) > idx + addedlines + 1) and (ctmDict[idx + addedlines + 1][0] == l[0]):
+            while (len(ctmDict) > idx + addedlines + 1) and len(ctmDict[idx + addedlines + 1]) > 0 and (ctmDict[idx + addedlines + 1][0] == l[0]):
                 addedlines += 1
     else:
         ctmDict.insert(idx + addedlines, [l[0], "1 0.000 0.030 [EMPTY]"])
+    idx += 1
 
 stm.close()
 ctm.close()
@@ -34,4 +40,3 @@ ctm = open(ctmFile, "w+")
 for l in ctmDict:
     ctm.write(" ".join(l) + "\n")
 ctm.close()
-
